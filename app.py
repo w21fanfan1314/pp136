@@ -2,9 +2,8 @@ import os
 import requests
 import hashlib
 import jieba
-from pp136 import home_page
-from pp136 import page
-from pp136 import page_detail
+
+from website import page_inteface
 
 # 配置信息
 class config:
@@ -112,10 +111,20 @@ class run:
     __home_link = None
     __page_link = None
 
-    def __init__(self):
+    # 首页
+    home = page_inteface
+    # 子页面
+    page = page_inteface
+    # 详情
+    detail = page_inteface
+
+    def __init__(self, home, page, detail):
         self.conf = config()
-        self.home = home_page()
         self.down = download()
+
+        self.home = home()
+        self.page = page
+        self.detail = detail
 
 
     # 检测网站是否已经开始爬取
@@ -146,7 +155,7 @@ class run:
                         continue
 
                 self.conf.add_url(self.__home_link)
-                p = page(self.__home_link)
+                p = self.page(self.__home_link)
                 while True:
                     # 某一个菜单下，页面中的所有的链接
                     page_links = p.get_all_links()
@@ -168,7 +177,7 @@ class run:
                         print(self.words)
 
                         # 获取资源
-                        d = page_detail(self.__page_link)
+                        d = self.detail(self.__page_link)
                         while True:
                             save_path = self.home.path() + "/" + p.path() +"/" + d.path() + "/"
                             detail_res = d.get_all_res()
