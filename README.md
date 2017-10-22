@@ -5,5 +5,7 @@
 request: https://github.com/request/request<br />
 Beautiful Soup:https://www.crummy.com/software/BeautifulSoup/bs4/doc.zh/(中文文档)<br />
 jieba:https://github.com/fxsjy/jieba（结巴分词工具）<br />
+<b>运行 main.py
  <br />
+  <br />
 单线程爬取数据，和蜗牛一样。只为了研究和学习，还在一点点完善中 ...
