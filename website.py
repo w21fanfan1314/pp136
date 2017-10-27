@@ -59,6 +59,8 @@ class base_page(page_inteface, pp):
     __html = ""
     # 上一级目录
     __parent = ""
+    # 父类级别
+    __deep = 1
 
     # 获取页面的html内容，只获取一次
     def get_html(self):
@@ -73,10 +75,16 @@ class base_page(page_inteface, pp):
 
     # 设置当前页面的链接
     def set_url(self, url):
+        self.set_url_deep(url, self.__deep)
+
+    def set_url_deep(self, url, deep = 1):
+        self.__deep = deep
         self.__url = url
-        self.__parent = url[0:url.rfind("/") + 1]
+        self.__parent = url
+        for i in range(0, deep):
+            self.__parent = self.__parent[0:self.__parent.rfind("/")]
         # 清空缓存的网页内容
         self.__html = ""
 
     def get_parent(self):
-        return self.__parent;
+        return self.__parent

@@ -43,7 +43,7 @@ class page(base_page):
         return self.__title
 
     def adjust_url(self, url):
-        return self.get_parent() + url;
+        return self.get_parent() +'/' + url
 
 
 
@@ -133,8 +133,8 @@ class page_detail(base_page):
 
     def adjust_url(self, url = ""):
         if url.find("http") < 0:
-            return self.get_parent() + url
-        return url;
+            return self.get_parent() +'/'+ url
+        return url
 
 
     # 路径

@@ -11,13 +11,14 @@ class config:
     path = ""
 
     # 文件名称
-    config_name = "pp136.txt"
+    __config_name = "pp136"
 
     # 所有的路劲
     urls = []
 
-    def __init__(self):
-        self.path = os.path.abspath("")
+    def __init__(self, config_name):
+        self.path = os.path.abspath("config")
+        self.__config_name = config_name
         self.__init_config()
 
     # 加入一个URL
@@ -65,7 +66,7 @@ class config:
         exists = os.path.exists(self.path)
         if not exists:
             os.makedirs(self.path)
-        return open(self.path +"/" + self.config_name, mode)
+        return open(self.path +"/" + self.__config_name +'.txt', mode)
 
 
 
@@ -80,7 +81,7 @@ class download:
 
     # 保存文件信息
     def download_file(self, file, link):
-        r = requests.get(link, stream=True)
+        r = requests.get(link, stream=True, timeout=60)
         if r.status_code == 200:
             dir = self.save_path +"/" + file
             if not os.path.exists(dir):
@@ -105,8 +106,6 @@ class download:
 
 
 class run:
-    # 进行标题分词
-    words = []
 
     __home_link = None
     __page_link = None
@@ -119,12 +118,13 @@ class run:
     detail = page_inteface
 
     def __init__(self, home, page, detail):
-        self.conf = config()
-        self.down = download()
-
         self.home = home()
         self.page = page
         self.detail = detail
+
+        self.word = cloud_word()
+        self.conf = config(self.home.path())
+        self.down = download()
 
 
     # 检测网站是否已经开始爬取
@@ -140,12 +140,14 @@ class run:
         if urls and urls.__len__() == 2:
             self.__home_link = urls[0]
             self.__page_link = urls[1]
+        else:
+            self.word.clear_words()
 
         home_links = self.home.get_all_links()
         if home_links:
             for home_link in home_links:
-                title = home_link["text"]
-                h_link = home_link["link"];
+                h_title = home_link["text"]
+                h_link = home_link["link"]
                 if not self.__home_link:
                     self.__home_link = h_link
                 else:
@@ -173,13 +175,12 @@ class run:
                         print("页面地址:" + self.__page_link)
                         self.conf.add_url(self.__page_link)
                         # 加入词云的统计
-                        self.add_word(title)
-                        print(self.words)
+                        self.word.add_word(p.path())
 
                         # 获取资源
                         d = self.detail(self.__page_link)
                         while True:
-                            save_path = self.home.path() + "/" + p.path() +"/" + d.path() + "/"
+                            save_path = self.home.path() + "/" + p.path() + "/" + d.path() + "/"
                             detail_res = d.get_all_res()
                             if detail_res:
                                 for res in detail_res:
@@ -207,22 +208,41 @@ class run:
 
                 self.conf.remove_url(self.__home_link)
                 self.__home_link = None
-            print(self.statistics_words())
+            print(self.word.statistics_words())
 
         else:
             print("[Error] 无法获取起始页的地址")
 
 
 
+# 提取词汇的功能
+class cloud_word:
+    # 进行标题分词
+    words = []
+
+    def __init__(self):
+        self.__save_path = os.path.abspath("word.txt")
 
 
     # 加入词云
     def add_word(self, text):
-        word_list = jieba.cut(text, cut_all=False)
-        self.words += word_list
+        file = open(self.__save_path, "a")
+        file.write(text)
+        file.close()
+
+    # 清空词云
+    def clear_words(self):
+        os.remove(self.__save_path)
 
     # 统计词云
     def statistics_words(self):
+        file = open(self.__save_path, "r")
+        __words = ""
+        for line in file:
+            __words += line
+        file.close()
+
+        self.words = jieba.cut(__words, cut_all=False)
         mapping = {}
         for word in set(self.words):
             mapping[word] = self.words.count(word)
